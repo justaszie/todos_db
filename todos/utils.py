@@ -12,8 +12,8 @@ def error_for_todo(name):
 
     return "Todo name must be between 1 and 100 characters"
 
-def find_list_by_id(list_id, lists):
-    return next((lst for lst in lists if lst['id'] == list_id), None)
+# def find_list_by_id(list_id, lists):
+#     return next((lst for lst in lists if lst['id'] == list_id), None)
 
 def find_todo_by_id(todo_id, todos):
     return next((todo for todo in todos if todo['id'] == todo_id), None)
@@ -24,15 +24,15 @@ def is_list_completed(lst):
 def is_todo_completed(todo):
     return todo['completed']
 
-def mark_all_completed(lst):
-    for todo in lst['todos']:
-        todo['completed'] = True
+# def mark_all_completed(lst):
+#     for todo in lst['todos']:
+#         todo['completed'] = True
 
-    return None
+#     return None
 
-def delete_todo_by_id(todo_id, lst):
-    lst['todos'] = [todo for todo in lst['todos'] if todo['id'] != todo_id]
-    return None
+# def delete_todo_by_id(todo_id, lst):
+#     lst['todos'] = [todo for todo in lst['todos'] if todo['id'] != todo_id]
+#     return None
 
 def sort_items(items, select_completed):
     sorted_items = sorted(items, key=lambda item: item['title'].lower())
