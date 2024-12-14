@@ -11,7 +11,7 @@ class SessionPersistence:
             self.session['lists'] = []
 
     def find_list(self, list_id):
-        found = next(lst for lst in self.session['lists']
+        found = (lst for lst in self.session['lists']
                        if lst['id'] == list_id)
         return next(found, None)
 
@@ -41,9 +41,8 @@ class SessionPersistence:
             self.session.modified = True
 
     def delete_list(self, list_id):
-        lists = self.all_lists()
-        lists = [
-            lst for lst in lists
+        self.session['lists'] = [
+            lst for lst in self.session['lists']
             if lst['id'] != list_id
         ]
         self.session.modified = True

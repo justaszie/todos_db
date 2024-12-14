@@ -1,3 +1,4 @@
+import os
 import secrets
 from uuid import uuid4
 from functools import wraps
@@ -6,7 +7,7 @@ from flask import (
     render_template,
     url_for,
     redirect,
-    session,
+    # session,
     request,
     flash,
     g,
@@ -26,6 +27,7 @@ from todos.utils import (
 )
 
 from todos.session_persistence import SessionPersistence
+from todos.database_persistence import DatabasePersistence
 
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(32)
@@ -58,8 +60,14 @@ def list_utilities_processor():
     return dict(is_list_completed=is_list_completed)
 
 @app.before_request
-def load_storage():
-    g.storage = SessionPersistence(session)
+def load_db():
+    g.storage = DatabasePersistence()
+
+# @app.teardown_request
+# def close_connection():
+#     # TODO - get rid of this when we move to DatabasePersistence completely
+#     if isinstance(g.storage, DatabasePersistence):
+#         g.storage.close_connection()
 
 @app.route("/")
 def index():
@@ -88,13 +96,13 @@ def create_list():
 def add_todo():
     return render_template('new_list.html')
 
-@app.route("/lists/<list_id>")
+@app.route("/lists/<int:list_id>")
 @require_list
 def show_list(lst, list_id):
     todos = sort_items(lst['todos'], is_todo_completed)
     return render_template('list.html', lst=lst, todos=todos)
 
-@app.route("/lists/<list_id>/todos", methods=["POST"])
+@app.route("/lists/<int:list_id>/todos", methods=["POST"])
 #highlight
 @require_list
 def create_todo(lst, list_id):
@@ -117,7 +125,7 @@ def create_todo(lst, list_id):
     # session.modified = True
     return redirect(url_for('show_list', list_id=list_id))
 
-@app.route("/lists/<list_id>/todos/<todo_id>/toggle", methods=["POST"])
+@app.route("/lists/<int:list_id>/todos/<int:todo_id>/toggle", methods=["POST"])
 #highlight
 @require_todo
 def update_todo_status(lst, todo, list_id, todo_id):
@@ -129,7 +137,7 @@ def update_todo_status(lst, todo, list_id, todo_id):
 
     return redirect(url_for('show_list', list_id=list_id))
 
-@app.route("/lists/<list_id>/todos/<todo_id>/delete", methods=["POST"])
+@app.route("/lists/<int:list_id>/todos/<int:todo_id>/delete", methods=["POST"])
 #highlight
 @require_todo
 def delete_todo(lst, todo, list_id, todo_id):
@@ -141,7 +149,7 @@ def delete_todo(lst, todo, list_id, todo_id):
     # session.modified = True
     return redirect(url_for('show_list', list_id=list_id))
 
-@app.route("/lists/<list_id>/complete_all", methods=["POST"])
+@app.route("/lists/<int:list_id>/complete_all", methods=["POST"])
 #highlight
 @require_list
 def mark_all_todos_completed(lst, list_id):
@@ -152,14 +160,14 @@ def mark_all_todos_completed(lst, list_id):
     # session.modified = True
     return redirect(url_for('show_list', list_id=list_id))
 
-@app.route("/lists/<list_id>/edit")
+@app.route("/lists/<int:list_id>/edit")
 #highlight
 @require_list
 def edit_list(lst, list_id):
     return render_template('edit_list.html', lst=lst)
 #endhighlight
 
-@app.route("/lists/<list_id>/delete", methods=["POST"])
+@app.route("/lists/<int:list_id>/delete", methods=["POST"])
 #highlight
 @require_list
 def delete_list(lst, list_id):
@@ -168,7 +176,7 @@ def delete_list(lst, list_id):
     flash("The list has been deleted.", "success")
     return redirect(url_for('get_lists'))
 
-@app.route("/lists/<list_id>", methods=["POST"])
+@app.route("/lists/<int:list_id>", methods=["POST"])
 #highlight
 @require_list
 def update_list(lst, list_id):
@@ -184,4 +192,7 @@ def update_list(lst, list_id):
     return redirect(url_for('get_lists'))
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5003)
+    if os.environ.get('FLASK_ENV') == 'production':
+        app.run(debug=False)
+    else:
+        app.run(debug=True, port=5003)
