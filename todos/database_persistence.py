@@ -14,6 +14,7 @@ class DatabasePersistence:
             dbname = os.environ.get('DATABASE_URL')
         else:
             dbname = 'todos'
+
         self.connection = psycopg2.connect(dbname=dbname)
 
         self._setup_schema()
